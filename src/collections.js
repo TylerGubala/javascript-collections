@@ -20,18 +20,18 @@
 
             this.add = this.push;
         }
-        static get first(){
+        get first(){
             return this[0];
         }
-        static get last(){
+        get last(){
             return this[this.length - 1];
         }
-        static clear(){
+        clear(){
             const oldMembers = new Array(...this);
             this.length = 0;
             this.dispatchEvent('change', {details: {oldMembers: oldMembers, members: [], addedMembers: [], removedMembers: oldMembers}});
         }
-        static copyWithin(){
+        copyWithin(){
             if (arguments[0] >= this.length){
                 // nothing is copied
             }
@@ -41,38 +41,37 @@
                 this.dispatchEvent('change', {details: {oldMembers: oldMembers, members: new Array(...this)}});
             }
         }
-        static fill(){
+        fill(){
             const oldMembers = new Array(...this);
             super.fill(...arguments);
             this.dispatchEvent('change', {details: {oldMembers: oldMembers, members: new Array(...this)}});
         }
-        static push(){
+        push(){
             const oldMembers = new Array(...this);
             const addedMembers = new Array(...arguments);
             super.push(...arguments);
             this.dispatchEvent('change', {details: {oldMembers: oldMembers, members: new Array(...this), addedMembers: addedMembers, removedMembers: []}})
         }
-        static pop(){
+        pop(){
             const oldMembers = new Array(...this);
             const removedMember = super.pop();
             this.dispatchEvent('change', {details: {oldMembers: oldMembers, members: new Array(...this), addedMembers: [], removedMembers: [removedMember]}});
             return removedMember;
         }
-        static remove(){
+        remove(){
             const oldMembers = new Array(...this);
             const removedMembers = [];
             for (let argument of arguments){
-                var removedMemberIndex = this.indexOf(argument);
-                if (!(removedMemberIndex === -1)){
+                if (this.includes(argument)){
                     removedMembers.push(argument);
-                    super.splice(removedMemberIndex, 1);
+                    super.remove(argument);
                 }
             }
             if (removedMembers.length > 0){
                 this.dispatchEvent('change', {details: {oldMembers: oldMembers, members: new Array(...this), addedMembers: [], removedMembers: removedMembers}})
             }
         }
-        static update(){
+        update(){
             const oldMembers = new Array(...this);
             var addedMembers = [];
             for (let argument of arguments){
@@ -90,7 +89,7 @@
                 this.dispatchEvent('change', {details: {oldMembers: oldMembers, members: new Array(...this), addedMembers: addedMembers, removedMembers: []}});
             }
         }
-        static intersection_update(){
+        intersection_update(){
             const oldMembers = new Array(...this);
             const removedMembers = [];
             for (let member of this){
@@ -103,7 +102,7 @@
             }
             this.dispatchEvent('change', {details: {oldMembers: oldMembers, members: new Array(...this), addedMembers: [], removedMembers: removedMembers}})
         }
-        static difference_update(){
+        difference_update(){
             const oldMembers = new Array(...this);
             const removedMembers = [];
             for (let argument of arguments){
@@ -121,8 +120,10 @@
             }
             this.dispatchEvent('change', {details: {oldMembers: oldMembers, members: new Array(...this), addedMembers: [], removedMembers: removedMembers}})
         }
-        static symmetric_difference_update(){
+        symmetric_difference_update(){
             const oldMembers = new Array(...this);
+            const addedMembers = [];
+            const removedMembers = [];
             for (let member in this){
                 for (let argument of arguments){
                     while (argument.includes(member)){
@@ -132,6 +133,37 @@
                     }
                 }
             }
+            for (let argument of arguments){
+                for (let subArg of argument){
+                    super.push(subArg);
+                    addedMembers.push(subArg);
+                }
+            }
+            this.dispatchEvent('change', {details: {oldMembers: oldMembers, members: new Array(...this), addedMembers: addedMembers, removedMembers: removedMembers}})
+        }
+        is_sub(){
+            for (let member of this){
+                for (let argument of arguments){
+                    if (!(argument.includes(member))) return false;
+                }
+            }
+            return arguments.length > 0;
+        }
+        is_super(){
+            for (let argument of arguments){
+                for (let subArg of argument){
+                    if (!(this.includes(subArg))) return false;
+                }
+            }
+            return arguments.length > 0;
+        }
+        is_disjoint(){
+            for (let member of this){
+                for (let argument of arguments){
+                    if (argument.includes(member)) return false;
+                }
+            }
+            return arguments.length > 0;
         }
     }
 
